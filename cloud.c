@@ -1,12 +1,16 @@
 #include <assert.h>
 #include <inttypes.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "cloud.h"
+#ifndef M_PI
+# define M_PI		3.14159265358979323846
+#endif
 
 #if 0
 static bool generic_ply(const char* filename, const void* buf,
-                        uint32_t width, uint32_height, size_t bytes)
+                        uint32_t width, uint32_t height, size_t bytes)
 {
 }
 #endif
@@ -19,7 +23,7 @@ static bool generic_cloud(const char* filename, const void* buf,
     perror("couldn't open point cloud output file");
     return false;
   }
-  /* fprintf(fp, "mtllib frame.mtl\n"); */
+  fprintf(fp, "mtllib frame.mtl\n");
 
   uint64_t nverts = 0;
   /* foreach node, print out the vertex. */
@@ -32,7 +36,21 @@ static bool generic_cloud(const char* filename, const void* buf,
         case 1: val = (float) (((const uint8_t*)buf)[idx]); break;
         default: abort();
       }
+#if 0
       fprintf(fp, "v %f %f %f\n", (float)x, (float)y, val);
+#else
+      /* The entire mesh appears to be flipped around, at least in
+       * meshlab's default coordinate system.  Rotate it 180 degrees around the
+       * X axis. */
+      const float fx = (float) x;
+      const float fy = (float) y;
+      const float fz = (float) val;
+#define TO_RAD(deg) (deg*M_PI/180.0)
+      fprintf(fp, "v %f %f %f\n", fx,
+              0 + cos(TO_RAD(180)) * fy - sin(TO_RAD(180)) * fz,
+              0 + sin(TO_RAD(180)) * fy + cos(TO_RAD(180)) * fz);
+#endif
+
       ++nverts;
     }
   }
@@ -40,14 +58,16 @@ static bool generic_cloud(const char* filename, const void* buf,
    * number of texture coordinates as vertex coordinates. */
   for(uint32_t y=0; y < height; ++y) {
     for(uint32_t x=0; x < width; ++x) {
-      /* what percent of the way through x and y is that through the image? */
+      /* what percent of the way through x and y are we through the image? */
       double xpercent = ((double)x) / (double)(width-1);
-      double ypercent = ((double)y) / (double)(height-1);
+      /* 'height-y': reverse the image in Y */
+      double ypercent = ((double)(height-y)) / (double)(height-1);
       fprintf(fp, "vt %lf %lf\n", xpercent, ypercent);
     }
   }
 
-  /* fprintf(fp, "usemtl default\n"); */
+  fprintf(fp, "usemtl default\n");
+
   /* now foreach cell, so we can print the faces */
   for(uint32_t y=1; y < height-1; ++y) {
     for(uint32_t x=1; x < width-1; ++x) {
@@ -70,15 +90,11 @@ static bool generic_cloud(const char* filename, const void* buf,
       fprintf(fp, "f %"PRIu64"/%"PRIu64" %"PRIu64"/%"PRIu64" "
                   "%"PRIu64"/%"PRIu64"\n", bottomright, bottomright,
               topright, topright, topleft, topleft);
-#if 0
-      fprintf(fp, "f %"PRIu64" %"PRIu64" %"PRIu64"\n", bottomright, topright,
-              topleft);
-#endif
     }
   }
 
   fclose(fp);
-#if 0
+
   fp = fopen("frame.mtl", "w+");
   if(!fp) {
     perror("could not create material file:");
@@ -91,12 +107,11 @@ static bool generic_cloud(const char* filename, const void* buf,
     "Ks 0.1 0.1 0.1\n"
     "d 1.0\n"
     "illum 2\n"
-    "map_Ka cdata.png\n"
-    "map_Kd cdata.png\n"
-    "map_Ks cdata.png\n"
+    "map_Ka cdata-01155.png\n"
+    "map_Kd cdata-01155.png\n"
+    "map_Ks cdata-01155.png\n"
   );
   fclose(fp);
-#endif
   return true;
 }
 

@@ -1,5 +1,7 @@
 WARN=-Wall -Wextra
-CFLAGS=-std=c99 $(WARN) -ggdb
+DBG=-ggdb
+RLS=-O3
+CFLAGS=-std=c99 $(WARN) $(DBG)
 LIBS=-lpng
 src := \
   bstream.c \
