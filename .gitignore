@@ -1,0 +1,7 @@
+*.[o]
+*.obj
+*.ply
+*.mtl
+*.png
+meshdepth
+processing
