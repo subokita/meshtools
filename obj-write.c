@@ -3,19 +3,12 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "cloud.h"
+#include "obj-write.h"
 #ifndef M_PI
 # define M_PI		3.14159265358979323846
 #endif
 
-#if 0
-static bool generic_ply(const char* filename, const void* buf,
-                        uint32_t width, uint32_t height, size_t bytes)
-{
-}
-#endif
-
-static bool generic_cloud(const char* filename, const void* buf,
+static bool generic_obj(const char* filename, const void* buf,
                           uint32_t width, uint32_t height, size_t bytes)
 {
   FILE* fp = fopen(filename, "w+");
@@ -115,11 +108,11 @@ static bool generic_cloud(const char* filename, const void* buf,
   return true;
 }
 
-bool write_cloud(const char* filename, const uint16_t* buf,
+bool write_obj(const char* filename, const uint16_t* buf,
                  uint32_t width, uint32_t height) {
-  return generic_cloud(filename, buf, width, height, 2);
+  return generic_obj(filename, buf, width, height, 2);
 }
-bool write_cloud8(const char* filename, const uint8_t* buf,
+bool write_obj8(const char* filename, const uint8_t* buf,
                   uint32_t width, uint32_t height) {
-  return generic_cloud(filename, buf, width, height, 1);
+  return generic_obj(filename, buf, width, height, 1);
 }

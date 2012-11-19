@@ -22,7 +22,7 @@ Pixels are than read by
 #include <string.h>
 
 #include "crop.h"
-#include "cloud.h"
+#include "obj-write.h"
 #include "minmax.h"
 #include "wrpng.h"
 
@@ -148,7 +148,6 @@ int main(int argc, char* argv[]) {
   fprintf(stderr, "max: %hu\n", ((const uint16_t*)out.data)[1]);
   free_minmax(mm);
 
-  /* write_cloud("test.obj", (uint16_t*)data, w, h); */
   free(data);
 
   return EXIT_SUCCESS;

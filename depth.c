@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "cloud.h"
+#include "obj-write.h"
 #include "wrpng.h"
 
 int main(int argc, char* argv[]) {
@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
   uint8_t* img;
   uint32_t width, height;
   readpng(argv[1], &img, &width, &height);
-  write_cloud8("frame.obj", img, width, height);
+  write_obj8("frame.obj", img, width, height);
   free(img);
 
   return EXIT_SUCCESS;
