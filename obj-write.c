@@ -9,7 +9,8 @@
 #endif
 
 static bool generic_obj(const char* filename, const void* buf,
-                          uint32_t width, uint32_t height, size_t bytes)
+                        uint32_t width, uint32_t height, float zscaling,
+                        size_t bytes)
 {
   FILE* fp = fopen(filename, "w+");
   if(!fp) {
@@ -37,7 +38,7 @@ static bool generic_obj(const char* filename, const void* buf,
        * X axis. */
       const float fx = (float) x;
       const float fy = (float) y;
-      const float fz = (float) val;
+      const float fz = ((float) val) * zscaling;
 #define TO_RAD(deg) (deg*M_PI/180.0)
       fprintf(fp, "v %f %f %f\n", fx,
               0 + cos(TO_RAD(180)) * fy - sin(TO_RAD(180)) * fz,
@@ -109,10 +110,10 @@ static bool generic_obj(const char* filename, const void* buf,
 }
 
 bool write_obj(const char* filename, const uint16_t* buf,
-                 uint32_t width, uint32_t height) {
-  return generic_obj(filename, buf, width, height, 2);
+               uint32_t width, uint32_t height, float zscale) {
+  return generic_obj(filename, buf, width, height, zscale, 2);
 }
 bool write_obj8(const char* filename, const uint8_t* buf,
-                  uint32_t width, uint32_t height) {
-  return generic_obj(filename, buf, width, height, 1);
+                uint32_t width, uint32_t height, float zscale) {
+  return generic_obj(filename, buf, width, height, zscale, 1);
 }

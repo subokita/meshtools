@@ -9,9 +9,9 @@ extern "C" {
 #endif
 
 bool write_obj(const char* filename, const uint16_t* buf,
-               uint32_t width, uint32_t height);
+               uint32_t width, uint32_t height, float depth_scale_factor);
 bool write_obj8(const char* filename, const uint8_t* buf,
-                uint32_t width, uint32_t height);
+                uint32_t width, uint32_t height, float depth_scale_factor);
 
 #ifdef __cplusplus
 }
