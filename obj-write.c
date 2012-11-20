@@ -3,16 +3,21 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "obj-write.h"
 #ifndef M_PI
 # define M_PI		3.14159265358979323846
 #endif
 
-static bool generic_obj(const char* filename, const void* buf,
+static bool generic_obj(const char* obasename, const void* buf,
                         uint32_t width, uint32_t height, float zscaling,
                         size_t bytes)
 {
-  FILE* fp = fopen(filename, "w+");
+  char* obj_filename = calloc(strlen(obasename)+8, sizeof(char));
+  strcpy(obj_filename, obasename);
+  strcat(obj_filename, ".obj");
+  FILE* fp = fopen(obj_filename, "w+");
+  free(obj_filename);
   if(!fp) {
     perror("couldn't open point cloud output file");
     return false;
@@ -89,7 +94,11 @@ static bool generic_obj(const char* filename, const void* buf,
 
   fclose(fp);
 
-  fp = fopen("frame.mtl", "w+");
+  char* mtl_filename = calloc(strlen(obasename)+8, sizeof(char));
+  strcpy(mtl_filename, obasename);
+  strcat(mtl_filename, ".mtl");
+  fp = fopen(mtl_filename, "w+");
+  free(mtl_filename);
   if(!fp) {
     perror("could not create material file:");
     return false;
