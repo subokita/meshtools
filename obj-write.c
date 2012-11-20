@@ -9,9 +9,9 @@
 # define M_PI		3.14159265358979323846
 #endif
 
-static bool generic_obj(const char* obasename, const void* buf,
-                        uint32_t width, uint32_t height, float zscaling,
-                        size_t bytes)
+static bool generic_obj(const char* obasename, const char* texture,
+                        const void* buf, uint32_t width, uint32_t height,
+                        float zscaling, size_t bytes)
 {
   char* obj_filename = calloc(strlen(obasename)+8, sizeof(char));
   strcpy(obj_filename, obasename);
@@ -110,19 +110,20 @@ static bool generic_obj(const char* obasename, const void* buf,
     "Ks 0.1 0.1 0.1\n"
     "d 1.0\n"
     "illum 2\n"
-    "map_Ka cdata-01155.png\n"
-    "map_Kd cdata-01155.png\n"
-    "map_Ks cdata-01155.png\n"
+    "map_Ka %s\n"
+    "map_Kd %s\n"
+    "map_Ks %s\n",
+    texture, texture, texture
   );
   fclose(fp);
   return true;
 }
 
-bool write_obj(const char* filename, const uint16_t* buf,
+bool write_obj(const char* filename, const char* texture, const uint16_t* buf,
                uint32_t width, uint32_t height, float zscale) {
-  return generic_obj(filename, buf, width, height, zscale, 2);
+  return generic_obj(filename, texture, buf, width, height, zscale, 2);
 }
-bool write_obj8(const char* filename, const uint8_t* buf,
+bool write_obj8(const char* filename, const char* texture, const uint8_t* buf,
                 uint32_t width, uint32_t height, float zscale) {
-  return generic_obj(filename, buf, width, height, zscale, 1);
+  return generic_obj(filename, texture, buf, width, height, zscale, 1);
 }

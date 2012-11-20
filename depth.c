@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
   uint8_t* img;
   uint32_t width, height;
   readpng(argv[1], &img, &width, &height);
-  write_obj8("frame", img, width, height, 0.1f);
+  write_obj8("frame", "cdata-01155.png", img, width, height, 0.1f);
   free(img);
 
   return EXIT_SUCCESS;
