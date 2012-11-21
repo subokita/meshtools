@@ -22,7 +22,11 @@ static bool generic_obj(const char* obasename, const char* texture,
     perror("couldn't open point cloud output file");
     return false;
   }
-  fprintf(fp, "mtllib frame.mtl\n");
+  char* mtl_filename = calloc(strlen(obasename)+8, sizeof(char));
+  strcpy(mtl_filename, obasename);
+  strcat(mtl_filename, ".mtl");
+  fprintf(fp, "mtllib %s\n", mtl_filename);
+  /* don't free the filename yet; we need it to write the file later! */
 
   uint64_t nverts = 0;
   /* foreach node, print out the vertex. */
@@ -94,9 +98,6 @@ static bool generic_obj(const char* obasename, const char* texture,
 
   fclose(fp);
 
-  char* mtl_filename = calloc(strlen(obasename)+8, sizeof(char));
-  strcpy(mtl_filename, obasename);
-  strcat(mtl_filename, ".mtl");
   fp = fopen(mtl_filename, "w+");
   free(mtl_filename);
   if(!fp) {
