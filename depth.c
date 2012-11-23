@@ -6,7 +6,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <glib.h>
+#include "expand.h"
+#include "lerp.h"
 #include "obj-write.h"
+#include "tjf-write.h"
 #include "wrpng.h"
 
 int main(int argc, char* argv[]) {
@@ -23,7 +27,15 @@ int main(int argc, char* argv[]) {
 
   readpng(depthfile, &img, &width, &height);
 
+  printf("expanding...\n");
+  float* imgf = expand8(img, width, height);
+  free(img);
+
+  printf("lerping...\n");
+  lerpf(imgf, width,height, 0.0f,241.0f, 1.0f,1.5f);
+
   {
+    printf("writing OBJ...\n");
     /* generate the basename for the OBJ file by trying to find a "."
     and hacking off everything there and later. */
     char* base_obj = calloc(strlen(objfile)+1, sizeof(char));
@@ -31,11 +43,19 @@ int main(int argc, char* argv[]) {
     char* dot = strrchr(base_obj, '.');
     if(dot) { *dot = '\0'; }
 
-    write_obj8(base_obj, colorfile, img, width, height, 0.1f);
+    write_objf(base_obj, colorfile, imgf, width, height);
     free(base_obj);
   }
+  {
+    printf("writing TJF...\n");
+    char* base_tjf = calloc(strlen(objfile)+1, sizeof(char));
+    strcpy(base_tjf, objfile);
+    char* dot = strrchr(base_tjf, '.');
+    if(dot) { *dot = '\0'; }
 
-  free(img);
+    write_tjff(base_tjf, colorfile, imgf, width, height);
+    free(base_tjf);
+  }
 
   return EXIT_SUCCESS;
 }

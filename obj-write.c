@@ -9,10 +9,16 @@
 # define M_PI		3.14159265358979323846
 #endif
 
-static bool generic_obj(const char* obasename, const char* texture,
-                        const void* buf, uint32_t width, uint32_t height,
-                        float zscaling, size_t bytes)
-{
+__attribute__((const))
+static float lerp(float v, float imin,float imax,
+           float omin,float omax) {
+  assert(imin <= v && v <= imax);
+  return omin + (v-imin) * ((omax-omin)/(imax-imin));
+}
+
+static bool generic_obj(bool flp, size_t bytes, const char* obasename,
+                        const char* texture, const void* buf,
+                        uint32_t width, uint32_t height) {
   char* obj_filename = calloc(strlen(obasename)+8, sizeof(char));
   strcpy(obj_filename, obasename);
   strcat(obj_filename, ".obj");
@@ -35,24 +41,38 @@ static bool generic_obj(const char* obasename, const char* texture,
       size_t idx = y*width + x;
       float val = 0.0f;
       switch(bytes) {
+        case 4: {
+          if(flp) {
+            val = (float) (((const float*)buf)[idx]);
+          } else {
+            val = (float) (((const uint32_t*)buf)[idx]);
+          }
+        } break;
         case 2: val = (float) (((const uint16_t*)buf)[idx]); break;
         case 1: val = (float) (((const uint8_t*)buf)[idx]); break;
         default: abort();
       }
-#if 0
-      fprintf(fp, "v %f %f %f\n", (float)x, (float)y, val);
-#else
-      /* The entire mesh appears to be flipped around, at least in
-       * meshlab's default coordinate system.  Rotate it 180 degrees around the
-       * X axis. */
-      const float fx = (float) x;
-      const float fy = (float) y;
-      const float fz = ((float) val) * zscaling;
+      float fx = (float) x - (width/2.0f);
+      float fy = (float) y - (height/2.0f);
+      float fz = ((float) val);
+      /* 241.0f comes from scanning all the meshes we have... */
+      const float max_depth = 241.0f;
+      assert(0.0f <= fz && fz <= max_depth);
+
+      /* normalize X/Y coords to fit in the unit cube */
+      const float w = (float) width;
+      const float h = (float) height;
+      fx = lerp(fx, (0-(w/2)),w/2, -2.0f,2.0f);
+      fy = lerp(fy, (0-(h/2)),h/2, -2.0f,2.0f);
+      assert(-2.0f <= fx && fx <= 2.0f);
+      assert(-2.0f <= fy && fy <= 2.0f);
+
+      /* The entire mesh appears to be flipped around.
+       * Rotate it 180 degrees around the X axis. */
 #define TO_RAD(deg) (deg*M_PI/180.0)
       fprintf(fp, "v %f %f %f\n", fx,
               0 + cos(TO_RAD(180)) * fy - sin(TO_RAD(180)) * fz,
               0 + sin(TO_RAD(180)) * fy + cos(TO_RAD(180)) * fz);
-#endif
 
       ++nverts;
     }
@@ -72,8 +92,8 @@ static bool generic_obj(const char* obasename, const char* texture,
   fprintf(fp, "usemtl default\n");
 
   /* now foreach cell, so we can print the faces */
-  for(uint32_t y=1; y < height-1; ++y) {
-    for(uint32_t x=1; x < width-1; ++x) {
+  for(uint32_t y=1; y < (height)-1; ++y) {
+    for(uint32_t x=1; x < (width)-1; ++x) {
       /* (x,y) gives us the LOWER RIGHT of the quad we are forming.  Also the
        * +1 at the end comes because OBJ indexes from 1, not 0. */
       uint64_t topleft = ((y-1)*width + (x-1)) + 1;
@@ -121,10 +141,14 @@ static bool generic_obj(const char* obasename, const char* texture,
 }
 
 bool write_obj(const char* filename, const char* texture, const uint16_t* buf,
-               uint32_t width, uint32_t height, float zscale) {
-  return generic_obj(filename, texture, buf, width, height, zscale, 2);
+               uint32_t width, uint32_t height) {
+  return generic_obj(false, 2, filename, texture, buf, width, height);
 }
 bool write_obj8(const char* filename, const char* texture, const uint8_t* buf,
-                uint32_t width, uint32_t height, float zscale) {
-  return generic_obj(filename, texture, buf, width, height, zscale, 1);
+                uint32_t width, uint32_t height) {
+  return generic_obj(false, 1, filename, texture, buf, width, height);
+}
+bool write_objf(const char* filename, const char* texture, const float* buf,
+                uint32_t width, uint32_t height) {
+  return generic_obj(true, 4, filename, texture, buf, width, height);
 }

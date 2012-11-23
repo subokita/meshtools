@@ -167,10 +167,6 @@ bool readpng(const char* filename, uint8_t** buf,
   /* setup PNGs stupid row pointers (it can't read into one large array) */
   png_bytep* row_pointers = calloc(h, sizeof(png_bytep));
   for(png_uint_32 i=0; i < h; ++i) {
-#if 0
-    fprintf(stderr, "row-p[%u] = %p (%p)\n", (unsigned)i, (buf + i * rowbytes),
-            (png_bytep)(buf+i*rowbytes));
-#endif
     row_pointers[i] = (png_bytep)((*buf) + i * rowbytes);
   }
   png_read_image(png, row_pointers);
