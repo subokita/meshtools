@@ -8,24 +8,31 @@ function error {
   exit 1
 }
 function usage {
-  echo "$0: directory directory"
+  echo "$0: depth-directory color-directory texblurred-directory"
   exit 1
 }
 
 test -n "$1" || usage $@
 test -n "$2" || usage $@
+test -n "$3" || usage $@
 test -d "$1" || error "'$1' is not a directory!"
 test -d "$2" || error "'$2' is not a directory!"
+test -d "$3" || error "'$2' is not a directory!"
 
 for depthmap in $(ls -1 $1/*png); do
   number=$(basename ${depthmap%%.png})
   number=${number##D}
-  # we pipe to /dev/null because it might not have a texture: drop it, if so.
-  texture=$(ls -1 ${2}/*${number}*png 2>/dev/null)
+  # we pipe to /dev/null because it might not have a texture.
+  texture=$(ls -1 ${3}/*${number}*png 2>/dev/null)
+  if test -z "${texture}"; then
+    # we pipe to /dev/null because it might not have a texture: drop it, if so.
+    texture=$(ls -1 ${2}/*${number}*png 2>/dev/null)
+  fi
   # skip if we can't find an associated texture.
   if test -z "${texture}" ; then
     continue
   fi
+  echo "Using texture: ${texture}"
   localtex=$(basename ${texture})
   echo "depthmap: ${depthmap}, ${number}, assoc tex: ${texture}, base: " \
        "${localtex}"
