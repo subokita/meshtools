@@ -34,6 +34,7 @@ int main(int argc, char* argv[]) {
   printf("lerping...\n");
   lerpf(imgf, width,height, 0.0f,241.0f, 1.0f,1.5f);
 
+#if 0
   {
     printf("writing OBJ...\n");
     /* generate the basename for the OBJ file by trying to find a "."
