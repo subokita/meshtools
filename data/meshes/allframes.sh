@@ -12,6 +12,10 @@ function usage {
   exit 1
 }
 
+SCENE="/home/tfogal/dev/scenelib/"
+REN="/home/tfogal/dev/scenelib/renderer/renderer"
+export LD_LIBRARY_PATH="${SCENE}"
+
 test -n "$1" || usage $@
 test -n "$2" || usage $@
 test -n "$3" || usage $@
@@ -38,4 +42,12 @@ for depthmap in $(ls -1 $1/*png); do
        "${localtex}"
   cp ${texture} ${localtex} || error "copying texture failed."
   ../../meshdepth ${depthmap} ${localtex} ${number} || error "meshdepth failed!"
+
+  ${REN} --batch -f "${SCENE}/dummy.sraf" -m "${number}.tjf" || error "ren failed."
+  scp blah.png \
+    shell.sci.utah.edu:/usr/sci/www/tfogal/tmp/scene/${number}-finished.png
 done
+
+ssh shell.sci.utah.edu \
+  "cd /usr/sci/www/tfogal/tmp/scene/ && zip all.zip *.png"
+ssh shell.sci.utah.edu chmod -R a+rX /usr/sci/www/tfogal/tmp/
