@@ -84,7 +84,7 @@ static bool generic_obj(bool flp, size_t bytes, const char* obasename,
       /* what percent of the way through x and y are we through the image? */
       double xpercent = ((double)x) / (double)(width-1);
       /* 'height-y': reverse the image in Y */
-      double ypercent = ((double)(height-y)) / (double)(height-1);
+      double ypercent = ((double)((height-1)-y)) / (double)(height-1);
       fprintf(fp, "vt %lf %lf\n", xpercent, ypercent);
     }
   }

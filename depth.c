@@ -46,8 +46,11 @@ int main(int argc, char* argv[]) {
     write_objf(base_obj, colorfile, imgf, width, height);
     free(base_obj);
   }
+#endif
   {
     printf("writing TJF...\n");
+    /* generate the basename for the filename by trying to find a "."
+    and hacking off everything there and later. */
     char* base_tjf = calloc(strlen(objfile)+1, sizeof(char));
     strcpy(base_tjf, objfile);
     char* dot = strrchr(base_tjf, '.');
