@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <glib.h>
 #include "tjf-write.h"
 #include "lerp.h"
 #ifndef M_PI
@@ -58,8 +59,8 @@ generic_tjfwrite(bool flp, size_t bytes, const char* tbasename,
     fwrite(&nverts, sizeof(uint64_t), 1, fp);
     /* texcoords == vert coords */
     fwrite(&nverts, sizeof(uint64_t), 1, fp);
-    uint64_t faces = 2 * nverts;
-    fwrite(&faces, sizeof(uint64_t), 1, fp);
+    uint64_t triangles = (width-2)*(height-2)*2;
+    fwrite(&triangles, sizeof(uint64_t), 1, fp);
     enum DataType dtype = data_type(flp, bytes);
     uint64_t u64_dtype = (uint64_t) dtype;
     fwrite(&u64_dtype, sizeof(uint64_t), 1, fp);
@@ -108,6 +109,7 @@ generic_tjfwrite(bool flp, size_t bytes, const char* tbasename,
       ++nverts;
     }
   }
+  assert(nverts == width*height);
 
   /* foreach node, print out the texture coordinates.  Note we create the same
    * number of texture coordinates as vertex coordinates. */
@@ -116,30 +118,35 @@ generic_tjfwrite(bool flp, size_t bytes, const char* tbasename,
       /* what percent of the way through x and y are we through the image? */
       float percent[2] = {
         ((double)x) / (double)(width-1),
-        ((double)(height-y)) / (double)(height-1) /* reverse the image in Y */
+        ((double)y) / (double)(height-1)
       };
       fwrite(percent, sizeof(float), 2, fp);
     }
   }
 
   /* now we can print the triangle information */
+  uint64_t n_tris=0;
   for(uint32_t y=1; y < height-1; ++y) {
     for(uint32_t x=1; x < width-1; ++x) {
-      /* (x,y) gives us the LOWER RIGHT of the quad we are forming.  Also the
-       * +1 at the end comes because OBJ indexes from 1, not 0. */
-      uint64_t topleft = ((y-1)*width + (x-1)) + 1;
-      uint64_t topright = ((y-1)*width + x) + 1;
-      uint64_t bottomleft = (y*width + (x-1)) + 1;
-      uint64_t bottomright = (y*width + x) + 1;
+      /* (x,y) gives us the LOWER RIGHT of the quad we are forming. */
+      uint64_t topleft = ((y-1)*width + (x-1));
+      uint64_t topright = ((y-1)*width + x);
+      uint64_t bottomleft = (y*width + (x-1));
+      uint64_t bottomright = (y*width + x);
       assert(topleft <= nverts);
       assert(topright <= nverts);
       assert(bottomleft <= nverts);
       assert(bottomright <= nverts);
-      uint64_t tri1[3] = { bottomleft, bottomright, topleft };
-      uint64_t tri2[3] = { bottomright, topright, topleft };
-      fwrite(tri1, sizeof(float), 3, fp);
-      fwrite(tri2, sizeof(float), 3, fp);
+      uint32_t tri1[3] = { bottomleft, bottomright, topleft };
+      uint32_t tri2[3] = { bottomright, topright, topleft };
+      fwrite(tri1, sizeof(uint32_t), 3, fp);
+      fwrite(tri2, sizeof(uint32_t), 3, fp);
+      n_tris += 2; /* two triangles written! */
     }
+  }
+  if(n_tris != ((width-2)*(height-2)*2)) {
+    /* %lu is wrong, should be PRI_u64 or whatever.. */
+    g_error("%lu triangles, only %lu verts!", n_tris, nverts);
   }
   
   fclose(fp);
