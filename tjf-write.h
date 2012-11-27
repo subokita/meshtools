@@ -9,9 +9,8 @@
 extern "C" {
 #endif
 
-
-bool write_tjff(const char* filename, const char* texture, const float* buf,
-                uint32_t width, uint32_t height);
+bool write_tjff(int32_t downsample, const char* filename, const char* texture,
+                const float* buf, uint32_t width, uint32_t height);
 
 #ifdef __cplusplus
 }

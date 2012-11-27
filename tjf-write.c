@@ -29,7 +29,7 @@ data_type(bool flp, size_t bytes) {
 }
 
 bool
-generic_tjfwrite(bool flp, size_t bytes, const char* tbasename,
+generic_tjfwrite(bool flp, size_t bytes, int32_t downsample, const char* tbasename,
                  const char* texture, const float* buf,
                  uint32_t width, uint32_t height) {
   char* tjf_filename = calloc(strlen(tbasename)+8, sizeof(char));
@@ -59,7 +59,7 @@ generic_tjfwrite(bool flp, size_t bytes, const char* tbasename,
     fwrite(&nverts, sizeof(uint64_t), 1, fp);
     /* texcoords == vert coords */
     fwrite(&nverts, sizeof(uint64_t), 1, fp);
-    uint64_t triangles = (width-2)*(height-2)*2;
+    uint64_t triangles = ((width-2)*(height-2))/downsample*2;
     fwrite(&triangles, sizeof(uint64_t), 1, fp);
     enum DataType dtype = data_type(flp, bytes);
     uint64_t u64_dtype = (uint64_t) dtype;
@@ -126,13 +126,24 @@ generic_tjfwrite(bool flp, size_t bytes, const char* tbasename,
 
   /* now we can print the triangle information */
   uint64_t n_tris=0;
-  for(uint32_t y=1; y < height-1; ++y) {
-    for(uint32_t x=1; x < width-1; ++x) {
+  for(uint32_t y=1; y < height-1; y+=downsample) {
+    for(uint32_t x=1; x < width-1; x+=downsample) {
       /* (x,y) gives us the LOWER RIGHT of the quad we are forming. */
+#if 0
       uint64_t topleft = ((y-1)*width + (x-1));
       uint64_t topright = ((y-1)*width + x);
       uint64_t bottomleft = (y*width + (x-1));
       uint64_t bottomright = (y*width + x);
+#else
+      int64_t cy = y-1;
+      int64_t cx = x-1;
+      if((cy - downsample) > 0) { cy -= downsample; }
+      if((cx - downsample) > 0) { cx -= downsample; }
+      const uint64_t topleft = ((cy)*width + (cx));
+      const uint64_t topright = ((cy)*width + x);
+      const uint64_t bottomleft = (y*width + (cx));
+      const uint64_t bottomright = (y*width + x);
+#endif
       assert(topleft <= nverts);
       assert(topright <= nverts);
       assert(bottomleft <= nverts);
@@ -144,17 +155,21 @@ generic_tjfwrite(bool flp, size_t bytes, const char* tbasename,
       n_tris += 2; /* two triangles written! */
     }
   }
+#if 0
   if(n_tris != ((width-2)*(height-2)*2)) {
     /* %lu is wrong, should be PRI_u64 or whatever.. */
     g_error("%lu triangles, only %lu verts!", n_tris, nverts);
   }
+#endif
   
   fclose(fp);
   return true;
 }
 
-bool write_tjff(const char* filename, const char* texture, const float* buf,
+bool write_tjff(int32_t downsample, const char* filename, const char* texture,
+                const float* buf,
                 uint32_t width, uint32_t height)
 {
-  return generic_tjfwrite(true, 4, filename, texture, buf, width, height);
+  return generic_tjfwrite(true, 4, downsample, filename, texture, buf,
+                          width, height);
 }

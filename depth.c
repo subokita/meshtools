@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     char* dot = strrchr(base_tjf, '.');
     if(dot) { *dot = '\0'; }
 
-    write_tjff(base_tjf, colorfile, imgf, width, height);
+    write_tjff(16, base_tjf, colorfile, imgf, width, height);
     free(base_tjf);
   }
 
